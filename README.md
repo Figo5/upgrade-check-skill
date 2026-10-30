@@ -12,7 +12,14 @@ Node >=24 with built-in `node:sqlite`, no third-party dependencies or runtime ne
 
 ## Install
 
-From this checkout, install the standalone skill for Claude Code:
+Clone it, then install the standalone skill:
+
+```sh
+git clone https://github.com/Figo5/upgrade-check-skill.git
+cd upgrade-check-skill
+```
+
+For Claude Code:
 
 ```sh
 mkdir -p ~/.claude/skills/upgrade-check
