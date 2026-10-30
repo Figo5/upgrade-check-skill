@@ -95,10 +95,13 @@ pilot is a demonstration, not an accuracy rate.
 
 **Tested:** macOS 27.0.1 (arm64), Node 26.8.1, SQLite 3.53.4. Good upgrade preserved
 records, relationships, and settings; broken upgrade retained counts but lost the
-Sunday preference. Both were checked after edits and repeated restarts. The
-frontmatter and installed-skill layouts were parsed by an independent skill validator
-and validated against the documented Claude Code and Codex layout; neither host was
-asked to discover or load the skill, and no invocation syntax was executed.
+Sunday preference. Both were checked after edits and repeated restarts, and all
+seven week-start values were checked separately. The frontmatter was parsed and the
+documented layouts created. Claude Code 2.1.311 listed `upgrade-check` in a
+session's skill/command list, and a skill-available run followed the procedure.
+Codex CLI 0.155.1 discovered it only when `CODEX_HOME` contained this skill alone;
+its normal home exceeded the skills context budget. No explicit `/upgrade-check`
+or `$upgrade-check` invocation was exercised, so auto-selection is not measured.
 
 **Assumed:** the dependency-free harness should work on other operating systems and
 Node >=24 versions with `node:sqlite`. The portable skill should work with other

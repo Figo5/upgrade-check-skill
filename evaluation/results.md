@@ -207,8 +207,10 @@ Frontmatter and installation layout check (exit 0), using a skill validator that
 happens to be installed on the authoring host (path redacted) plus its Python/PyYAML
 environment. It is not a dependency of this repository and the exact command is not
 reproducible elsewhere. It checks conventional format and the documented directory
-layouts only: Claude Code 2.1.311 and Codex CLI 0.155.1 were never asked to discover,
-load, or invoke the skill. The CLI versions were recorded with `--version`.
+layouts only; this particular run made no host calls. Later agent runs did test
+discovery: Claude Code listed the skill, while Codex needed an isolated
+`CODEX_HOME` because its normal home exceeded the skills context budget (see
+[agent-runs/](agent-runs/)). No explicit slash-command invocation was exercised.
 
 ```sh
 python3 - <<'PY'
