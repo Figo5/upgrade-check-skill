@@ -51,10 +51,10 @@ your-project/
             └── SKILL.md
 ```
 
-No fixture files are needed in an installed skill. The intended invocation is
-`/upgrade-check` in Claude Code or `$upgrade-check` in Codex, with the baseline and
-candidate to evaluate; that invocation syntax is assumed, not host-tested (see
-compatibility below).
+No fixture files are needed in an installed skill. Invoke `/upgrade-check` in
+Claude Code or `$upgrade-check` in Codex, with the baseline and candidate to
+evaluate. Both explicit forms were exercised in headless runs on 2026-10-30; see
+[explicit-invocation.md](evaluation/agent-runs/explicit-invocation.md).
 
 ## One worked example: a notebook's saved week-start setting
 
@@ -97,11 +97,13 @@ pilot is a demonstration, not an accuracy rate.
 records, relationships, and settings; broken upgrade retained counts but lost the
 Sunday preference. Both were checked after edits and repeated restarts, and all
 seven week-start values were checked separately. The frontmatter was parsed and the
-documented layouts created. Claude Code 2.1.311 listed `upgrade-check` in a
-session's skill/command list, and a skill-available run followed the procedure.
-Codex CLI 0.155.1 discovered it only when `CODEX_HOME` contained this skill alone;
-its normal home exceeded the skills context budget. No explicit `/upgrade-check`
-or `$upgrade-check` invocation was exercised, so auto-selection is not measured.
+documented layouts created. Claude Code 2.1.311 expanded `/upgrade-check`, listed
+it in a session's skill/command list, and followed the procedure. Codex CLI 0.155.1
+expanded `$upgrade-check` and followed it when `CODEX_HOME` contained this skill
+alone; its normal home exceeded the skills context budget, so a direct availability
+probe answered `NONE` there. The tested workaround is an isolated `CODEX_HOME`
+containing `skills/upgrade-check` plus auth/config. Automatic selection without an
+explicit name is not measured.
 
 **Assumed:** the dependency-free harness should work on other operating systems and
 Node >=24 versions with `node:sqlite`. The portable skill should work with other

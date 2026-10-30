@@ -208,9 +208,10 @@ happens to be installed on the authoring host (path redacted) plus its Python/Py
 environment. It is not a dependency of this repository and the exact command is not
 reproducible elsewhere. It checks conventional format and the documented directory
 layouts only; this particular run made no host calls. Later agent runs did test
-discovery: Claude Code listed the skill, while Codex needed an isolated
-`CODEX_HOME` because its normal home exceeded the skills context budget (see
-[agent-runs/](agent-runs/)). No explicit slash-command invocation was exercised.
+discovery: Claude Code listed and expanded `/upgrade-check`; Codex needed an
+isolated `CODEX_HOME` because its normal home exceeded the skills context budget,
+then expanded `$upgrade-check`. Both explicit runs detected the defect. See
+[agent-runs/explicit-invocation.md](agent-runs/explicit-invocation.md).
 
 ```sh
 python3 - <<'PY'
