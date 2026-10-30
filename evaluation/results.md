@@ -82,7 +82,7 @@ SHA256 fixture/app.mjs 95713bec38899d0a85115b7a799a091c6240d3181daa4218abb8728ff
 SHA256 fixture/baseline.mjs 1c95b509d4a6e302c3c3d925a89705bc26495a9395f112a8d68a96e80d7f827a
 SHA256 fixture/good.mjs ecab889ff1169617949f8716691919bf725493fa708d905248173f6312eb2e3a
 SHA256 fixture/broken.mjs 0d3fce385f4c98a7e57cc939adea0ac6e13c427b31820152aea1d541683c9804
-SHA256 evaluation/run.mjs 679fb8c83e8da0b8250aa2962738e7be3fe77de66f26b4474bb337e7cdeeee24
+SHA256 evaluation/run.mjs cb9c962f8e3fb54caf08b5278c9293f7b7991c2153b8e09c4927601aaa7b44b3
 export NODE='/Users/<user>/.hermes/node/bin/node'  # local install path redacted
 export RUN_DIR='/var/folders/5w/hyjrff5s4bj3zftwcbg76dhr0000gn/T/upgrade-check-TABX7n'
 VERSION baseline/baseline.mjs --version => notebook/1.0.0
@@ -315,8 +315,9 @@ BOUNDARY broken/saturday: expected=saturday observed=saturday
 BOUNDARY SWEEP PASS: all seven values checked separately; broken loses only Sunday, good preserves all.
 ```
 
-Every row asserts exact IDs, names, relationships, counts and week order, not
-just the one preference. The unmodified deprecated `day || 1` defect is still
+Every row asserts the exact notebook and note records and their relationship,
+the counts, the preference meaning and the displayed week order, not just the
+one preference. The unmodified deprecated `day || 1` defect is still
 the only difference between the candidates.
 
 ## Agent-following pilot

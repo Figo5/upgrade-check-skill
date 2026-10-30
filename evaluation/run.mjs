@@ -140,6 +140,10 @@ try {
       const observed = read.preferences.weekStartsOn;
       console.log(`BOUNDARY ${kind}/${day}: expected=${expectedDay} observed=${observed}`);
       assert.equal(observed, expectedDay, `${kind} boundary ${day}`);
+      assert.deepEqual(read.notebooks, [{ id: 'home', name: 'Home' }]);
+      assert.deepEqual(read.notes, [
+        { id: 'n1', notebook_id: 'home', title: 'One', body: 'body' },
+      ]);
       assert.deepEqual(read.counts, { notebooks: 1, notes: 1, preferences: 1 });
       const shift = expectedDays.indexOf(expectedDay);
       assert.deepEqual(week.days, [...expectedDays.slice(shift), ...expectedDays.slice(0, shift)]);
