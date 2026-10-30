@@ -286,12 +286,28 @@ CONTROL PASS: repairing only the disposable broken candidate makes the harness e
 AssertionError [ERR_ASSERTION]: broken/upgrade: unexpected upgrade outcome
 ```
 
+## Agent-following pilot
+
+Four comparable runs were made in separate disposable fixture directories: Claude
+Code and Codex CLI, each with and without the installed skill. The task asked
+whether the two v2 candidates work for an existing user with saved data and did
+not mention the planted defect. All four exercised a real baseline-to-candidate
+path, passed the good build, and found the Sunday-to-Monday change. No false
+findings appeared; two runs did not cover every weekday. The skill-guided reports
+followed the report template and retained pristine baseline databases and command
+logs. This is a four-run demonstration, not an accuracy rate.
+
+Exact prompt, discovery observations, and the four captured reports are in
+[agent-runs/](agent-runs/). Codex required an isolated `CODEX_HOME` because the
+normal home exceeded its skills context budget and dropped all skill descriptions.
+
 ## Untested and limitations
 
 This is deterministic evaluation of a tiny application and the upgrade procedure,
-not a model-following evaluation. No Claude Code or Codex model invocation, skill
-auto-selection, installed-host loading, or end-to-end agent session was tested.
-The shared-format validation does not prove those behaviors.
+plus a four-run agent-following pilot. It is not a benchmark. Skill auto-selection
+was not recorded for Claude Code, and the Codex default-home discovery failure
+shows that skill availability can depend on host context limits. The shared-format
+validation does not prove host loading.
 
 Only the reported macOS/Node/SQLite combination was executed. Linux, Windows,
 Node 24/25, and other agent hosts are assumed compatible, not tested. No production

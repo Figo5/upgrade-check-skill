@@ -79,8 +79,10 @@ makes the harness exit nonzero. Temporary databases are deleted in a `finally` b
 ## Evaluation and compatibility
 
 See [evaluation/results.md](evaluation/results.md) for captured commands/output,
-artifact hashes, checks, and limitations. This deterministic fixture evaluation
-tests the upgrade procedure; it does not measure whether a model follows the skill.
+artifact hashes, checks, and limitations, and
+[agent-runs/](evaluation/agent-runs/) for four comparable Claude Code/Codex runs
+with and without the skill. All four found the planted setting loss; that small
+pilot is a demonstration, not an accuracy rate.
 
 **Tested:** macOS 27.0.1 (arm64), Node 26.8.1, SQLite 3.53.4. Good upgrade preserved
 records, relationships, and settings; broken upgrade retained counts but lost the
