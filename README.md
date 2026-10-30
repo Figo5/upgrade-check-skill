@@ -70,9 +70,11 @@ node evaluation/run.mjs
 
 The harness executes the baseline separately for each candidate, then executes the
 real candidate's initialization, reads values and week order, edits a saved note,
-and verifies persistence through two more startups. It asserts the good candidate
-passes and the broken candidate fails specifically on the Sunday setting and week
-order. Harness exit 0 means both expected outcomes were demonstrated; it does **not**
+and verifies persistence through two more startups. It also saves each of the
+seven week-start values in its own baseline state and upgrades it with both
+candidates, so the Sunday-only defect cannot hide behind a Tuesday seed. It
+asserts the good candidate passes and the broken candidate fails specifically on
+the Sunday setting and week order. Harness exit 0 means both expected outcomes were demonstrated; it does **not**
 mean the broken candidate is safe. An unexpected pass, unrelated failure, or crash
 makes the harness exit nonzero. Temporary databases are deleted in a `finally` block.
 

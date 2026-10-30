@@ -122,6 +122,30 @@ try {
     }
     console.log(`RESULT ${kind}: ${kind === 'good' ? 'PASS' : 'FAIL (expected setting loss detected)'}; two explicit restarts stable; edit persisted`);
   }
+  // Boundary sweep: every value of the transformed preference, each in its
+  // own baseline state. This is the check the skill now requires; without it
+  // a Tuesday-only seed would let the Sunday defect pass.
+  for (const day of expectedDays) {
+    for (const kind of ['good', 'broken']) {
+      const db = join(workspace, `boundary-${kind}-${day}`, 'data', 'notebook.sqlite');
+      command(baseline, db, 'init');
+      command(baseline, db, 'add-notebook', 'home', 'Home');
+      command(baseline, db, 'add-note', 'n1', 'home', 'One', 'body');
+      command(baseline, db, 'set-week-start', day);
+      const candidate = join(workspace, kind, 'app', `${kind}.mjs`);
+      command(candidate, db, 'init');
+      const read = command(candidate, db, 'read');
+      const week = command(candidate, db, 'week');
+      const expectedDay = kind === 'broken' && day === 'sunday' ? 'monday' : day;
+      const observed = read.preferences.weekStartsOn;
+      console.log(`BOUNDARY ${kind}/${day}: expected=${expectedDay} observed=${observed}`);
+      assert.equal(observed, expectedDay, `${kind} boundary ${day}`);
+      assert.deepEqual(read.counts, { notebooks: 1, notes: 1, preferences: 1 });
+      const shift = expectedDays.indexOf(expectedDay);
+      assert.deepEqual(week.days, [...expectedDays.slice(shift), ...expectedDays.slice(0, shift)]);
+    }
+  }
+  console.log('BOUNDARY SWEEP PASS: all seven values checked separately; broken loses only Sunday, good preserves all.');
   console.log('HARNESS PASS: good upgrade passes; broken upgrade detected by setting value and week behavior despite unchanged counts.');
 } finally {
   rmSync(workspace, { recursive: true, force: true });

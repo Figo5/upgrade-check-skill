@@ -22,6 +22,11 @@ Keep the check bounded to the requested update and report the evidence collected
    with explicit expected values. Read the documented migration contract: intentional
    schema changes or transformations need semantic expectations, not byte equality.
    An undocumented reset or loss is a defect, even when the app starts successfully.
+   For every field the update transforms or re-encodes, enumerate its value domain
+   and select boundary values: zero or falsy, empty, the first and last enum member,
+   null or absent when the baseline can produce them, and the maximum. If the domain
+   is small, cover every value. Record one expected result per value before running
+   the candidate.
 3. **Isolate everything.** Use separate worktrees/build directories for baseline and
    candidate, and disposable data directories with explicit paths. Redirect the
    app's config, caches, and service endpoints as needed to avoid real user state.
@@ -30,8 +35,10 @@ Keep the check bounded to the requested update and report the evidence collected
    and report it as not tested. Keep each candidate's starting state independent.
 4. **Save state with the baseline.** Run the actual baseline app. Create data through
    its supported UI, CLI, or API, including meaningful edge values such as an
-   explicitly disabled setting or a nondefault relationship. Read it back and
-   capture expected values and behavior. Never create "old-version data" with the
+   explicitly disabled setting or a nondefault relationship. Save each selected
+   boundary value in its own disposable state, or one state per independent value,
+   so a bug in one value cannot hide behind another. Read each state back and
+   capture its expected values and behavior. Never create "old-version data" with the
    new version and call it an upgrade test. Do not inject SQL or handwrite old data
    as a replacement for exercising the baseline's supported save path.
 5. **Close or safely checkpoint the baseline.** Wait for writes and child processes
@@ -75,6 +82,7 @@ Versions: baseline <exact ref/version>; candidate <exact ref/version + local cha
 Artifacts: build/runtime versions, hashes, workspace/data paths, logs, cleanup
 Commands: baseline build/save/read/close; candidate build/start/check/close
 State created: synthetic records, relationships, nondefault settings
+Value domain: transformed fields, boundary values tried, expected result per value
 Migration contract: documented transformations and semantic expectations
 Checks: <record/relationship/setting/action> | expected <value> | observed <value> | status
 Restarts: commands, number of new processes, checks and observations

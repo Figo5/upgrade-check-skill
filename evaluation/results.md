@@ -82,7 +82,7 @@ SHA256 fixture/app.mjs 95713bec38899d0a85115b7a799a091c6240d3181daa4218abb8728ff
 SHA256 fixture/baseline.mjs 1c95b509d4a6e302c3c3d925a89705bc26495a9395f112a8d68a96e80d7f827a
 SHA256 fixture/good.mjs ecab889ff1169617949f8716691919bf725493fa708d905248173f6312eb2e3a
 SHA256 fixture/broken.mjs 0d3fce385f4c98a7e57cc939adea0ac6e13c427b31820152aea1d541683c9804
-SHA256 evaluation/run.mjs 417d3ad1a9002cb10091044bd5b7861e4a479bbf5f58ee1a9f2c18d4885cfb36
+SHA256 evaluation/run.mjs 679fb8c83e8da0b8250aa2962738e7be3fe77de66f26b4474bb337e7cdeeee24
 export NODE='/Users/<user>/.hermes/node/bin/node'  # local install path redacted
 export RUN_DIR='/var/folders/5w/hyjrff5s4bj3zftwcbg76dhr0000gn/T/upgrade-check-TABX7n'
 VERSION baseline/baseline.mjs --version => notebook/1.0.0
@@ -285,6 +285,39 @@ Captured output:
 CONTROL PASS: repairing only the disposable broken candidate makes the harness exit 1.
 AssertionError [ERR_ASSERTION]: broken/upgrade: unexpected upgrade outcome
 ```
+
+## Boundary-value sweep
+
+The first harness version seeded only Sunday. A peer review found that this made
+the defect look detected only because the author chose the one falsy value; a
+Tuesday-only seed let `broken.mjs` pass. `SKILL.md` now requires enumerating the
+transformed field's value domain and saving each boundary value separately, and
+the harness now upgrades all seven week-start values from independent baseline
+states.
+
+Captured output (exit 0):
+
+```text
+BOUNDARY good/sunday: expected=sunday observed=sunday
+BOUNDARY broken/sunday: expected=monday observed=monday
+BOUNDARY good/monday: expected=monday observed=monday
+BOUNDARY broken/monday: expected=monday observed=monday
+BOUNDARY good/tuesday: expected=tuesday observed=tuesday
+BOUNDARY broken/tuesday: expected=tuesday observed=tuesday
+BOUNDARY good/wednesday: expected=wednesday observed=wednesday
+BOUNDARY broken/wednesday: expected=wednesday observed=wednesday
+BOUNDARY good/thursday: expected=thursday observed=thursday
+BOUNDARY broken/thursday: expected=thursday observed=thursday
+BOUNDARY good/friday: expected=friday observed=friday
+BOUNDARY broken/friday: expected=friday observed=friday
+BOUNDARY good/saturday: expected=saturday observed=saturday
+BOUNDARY broken/saturday: expected=saturday observed=saturday
+BOUNDARY SWEEP PASS: all seven values checked separately; broken loses only Sunday, good preserves all.
+```
+
+Every row asserts exact IDs, names, relationships, counts and week order, not
+just the one preference. The unmodified deprecated `day || 1` defect is still
+the only difference between the candidates.
 
 ## Agent-following pilot
 
