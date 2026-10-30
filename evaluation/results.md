@@ -1,0 +1,306 @@
+# Captured evaluation
+
+The harness exited **0**: the good upgrade passed; the broken upgrade failed on
+the saved setting and its displayed week order, as expected. Both retained two
+notebooks, three notes, their relationships, and one preference row. An edit to
+an existing note persisted through two explicit restart cycles in both builds.
+The broken setting remained wrong; stable repeated startup does not repair loss.
+
+## Scope and artifact identity
+
+Run on 2026-10-30 from `/Users/giofiore/work/upgrade-check-skill`. The executable
+sources and harness match the committed working tree (see the repository history);
+the SHA-256 hashes below pin every executable source, including shared code.
+There is no compilation step: Node executes the `.mjs` artifacts directly.
+
+- Baseline: `notebook/1.0.0`, `fixture/baseline.mjs` plus `fixture/app.mjs`.
+- Candidates: `notebook/2.0.0-good` and `notebook/2.0.0-broken`, their respective
+  entrypoints plus `fixture/app.mjs`.
+- Contract: schema 1's `week_start` day name becomes schema 2's `week_start_day`
+  integer (Sunday = 0). The meaning of the saved preference must remain Sunday.
+- Defect: `const converted = day || 1` treats Sunday as missing and chooses Monday;
+  the correct build uses `day ?? 1`. The baseline explicitly saves a nondefault
+  Sunday through its supported command interface.
+- Isolation: the harness copies executable sources into separate temporary
+  baseline/candidate directories and gives each candidate an independently seeded
+  database. No SQL seeding, live database copies, or mocked migrations are used.
+- Shutdown: every app command finishes `wal_checkpoint(TRUNCATE)` and closes its
+  connection. The harness waits for exit 0 and asserts the WAL is absent or empty.
+  All commands start new processes; the two labeled restart cycles are additional
+  normal `init`/`read`/`week` launches, never forced migration reruns.
+- Checks: exact notebook IDs/names, note IDs/titles/bodies/notebook relationships,
+  Unicode, multiline and empty bodies, preference meaning, complete week order,
+  edit persistence, schema version, counts, and stability on repeated startup.
+
+## Host and runtime
+
+Command (exit 0):
+
+```sh
+date -u '+%Y-%m-%dT%H:%M:%SZ'
+sw_vers
+uname -m
+node --version
+claude --version
+codex --version
+```
+
+Captured stdout/stderr:
+
+```text
+2026-10-30T18:52:54Z
+ProductName:		macOS
+ProductVersion:		27.0.1
+BuildVersion:		26A434
+arm64
+v26.8.1
+2.1.311 (Claude Code)
+WARNING: proceeding, even though we could not create PATH aliases: Operation not permitted (os error 1)
+codex-cli 0.155.1
+```
+
+The Codex warning concerns this sandbox's PATH alias permissions; version reporting
+succeeded. SQLite's version is queried by the harness below.
+
+## Full upgrade run
+
+Exact harness command (exit 0):
+
+```sh
+node evaluation/run.mjs
+```
+
+Captured output follows. `$` marks logged commands; `NODE` and `RUN_DIR` identify
+their exact executable and temporary path. JSON lines are actual app stdout.
+Every logged app command exited 0. The temporary paths were removed by the harness;
+rerunning the harness creates new paths and executes the entire sequence again.
+
+```text
+Host: darwin arm64 27.0.0; Node v26.8.1
+SQLite: 3.53.4
+SHA256 fixture/app.mjs 95713bec38899d0a85115b7a799a091c6240d3181daa4218abb8728ff2d82090
+SHA256 fixture/baseline.mjs 1c95b509d4a6e302c3c3d925a89705bc26495a9395f112a8d68a96e80d7f827a
+SHA256 fixture/good.mjs ecab889ff1169617949f8716691919bf725493fa708d905248173f6312eb2e3a
+SHA256 fixture/broken.mjs 0d3fce385f4c98a7e57cc939adea0ac6e13c427b31820152aea1d541683c9804
+SHA256 evaluation/run.mjs 417d3ad1a9002cb10091044bd5b7861e4a479bbf5f58ee1a9f2c18d4885cfb36
+export NODE='/Users/<user>/.hermes/node/bin/node'  # local install path redacted
+export RUN_DIR='/var/folders/5w/hyjrff5s4bj3zftwcbg76dhr0000gn/T/upgrade-check-TABX7n'
+VERSION baseline/baseline.mjs --version => notebook/1.0.0
+VERSION good/app/good.mjs --version => notebook/2.0.0-good
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'add-notebook' 'work' 'Work'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'add-note' 'n1' 'work' 'Release' 'Keep the saved preference.'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'add-note' 'n2' 'home' 'Sunday'\''s café' 'Plan
+Bring notebook.'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'add-note' 'n3' 'work' 'Follow-up' ''
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'set-week-start' 'sunday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'read'
+{"schema":1,"notebooks":[{"id":"home","name":"Home"},{"id":"work","name":"Work"}],"notes":[{"id":"n1","notebook_id":"work","title":"Release","body":"Keep the saved preference."},{"id":"n2","notebook_id":"home","title":"Sunday's café","body":"Plan\nBring notebook."},{"id":"n3","notebook_id":"work","title":"Follow-up","body":""}],"preferences":{"weekStartsOn":"sunday"},"counts":{"notebooks":2,"notes":3,"preferences":1}}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'week'
+{"days":["sunday","monday","tuesday","wednesday","thursday","friday","saturday"]}
+BASELINE good: saved through normal interface; all processes exited; WAL absent or empty
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"},{"id":"work","name":"Work"}],"notes":[{"id":"n1","notebook_id":"work","title":"Release","body":"Keep the saved preference."},{"id":"n2","notebook_id":"home","title":"Sunday's café","body":"Plan\nBring notebook."},{"id":"n3","notebook_id":"work","title":"Follow-up","body":""}],"preferences":{"weekStartsOn":"sunday"},"counts":{"notebooks":2,"notes":3,"preferences":1}}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'week'
+{"days":["sunday","monday","tuesday","wednesday","thursday","friday","saturday"]}
+CHECK good/upgrade: schema=2; counts=2/3/1 unchanged; records, relationships and edit state match; semantic failures=0
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'edit-note' 'n2' 'Revised after upgrade: café, then review.'
+{"ok":"edit-note"}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"},{"id":"work","name":"Work"}],"notes":[{"id":"n1","notebook_id":"work","title":"Release","body":"Keep the saved preference."},{"id":"n2","notebook_id":"home","title":"Sunday's café","body":"Revised after upgrade: café, then review."},{"id":"n3","notebook_id":"work","title":"Follow-up","body":""}],"preferences":{"weekStartsOn":"sunday"},"counts":{"notebooks":2,"notes":3,"preferences":1}}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'week'
+{"days":["sunday","monday","tuesday","wednesday","thursday","friday","saturday"]}
+CHECK good/restart-1: schema=2; counts=2/3/1 unchanged; records, relationships and edit state match; semantic failures=0
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"},{"id":"work","name":"Work"}],"notes":[{"id":"n1","notebook_id":"work","title":"Release","body":"Keep the saved preference."},{"id":"n2","notebook_id":"home","title":"Sunday's café","body":"Revised after upgrade: café, then review."},{"id":"n3","notebook_id":"work","title":"Follow-up","body":""}],"preferences":{"weekStartsOn":"sunday"},"counts":{"notebooks":2,"notes":3,"preferences":1}}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'week'
+{"days":["sunday","monday","tuesday","wednesday","thursday","friday","saturday"]}
+CHECK good/restart-2: schema=2; counts=2/3/1 unchanged; records, relationships and edit state match; semantic failures=0
+RESULT good: PASS; two explicit restarts stable; edit persisted
+VERSION baseline/baseline.mjs --version => notebook/1.0.0
+VERSION broken/app/broken.mjs --version => notebook/2.0.0-broken
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'add-notebook' 'work' 'Work'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'add-note' 'n1' 'work' 'Release' 'Keep the saved preference.'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'add-note' 'n2' 'home' 'Sunday'\''s café' 'Plan
+Bring notebook.'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'add-note' 'n3' 'work' 'Follow-up' ''
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'set-week-start' 'sunday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'read'
+{"schema":1,"notebooks":[{"id":"home","name":"Home"},{"id":"work","name":"Work"}],"notes":[{"id":"n1","notebook_id":"work","title":"Release","body":"Keep the saved preference."},{"id":"n2","notebook_id":"home","title":"Sunday's café","body":"Plan\nBring notebook."},{"id":"n3","notebook_id":"work","title":"Follow-up","body":""}],"preferences":{"weekStartsOn":"sunday"},"counts":{"notebooks":2,"notes":3,"preferences":1}}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'week'
+{"days":["sunday","monday","tuesday","wednesday","thursday","friday","saturday"]}
+BASELINE broken: saved through normal interface; all processes exited; WAL absent or empty
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"},{"id":"work","name":"Work"}],"notes":[{"id":"n1","notebook_id":"work","title":"Release","body":"Keep the saved preference."},{"id":"n2","notebook_id":"home","title":"Sunday's café","body":"Plan\nBring notebook."},{"id":"n3","notebook_id":"work","title":"Follow-up","body":""}],"preferences":{"weekStartsOn":"monday"},"counts":{"notebooks":2,"notes":3,"preferences":1}}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'week'
+{"days":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]}
+DETECTED broken/upgrade: preferences.weekStartsOn expected=sunday observed=monday
+DETECTED broken/upgrade: week order expected=sunday,monday,tuesday,wednesday,thursday,friday,saturday observed=monday,tuesday,wednesday,thursday,friday,saturday,sunday
+CHECK broken/upgrade: schema=2; counts=2/3/1 unchanged; records, relationships and edit state match; semantic failures=2
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'edit-note' 'n2' 'Revised after upgrade: café, then review.'
+{"ok":"edit-note"}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"},{"id":"work","name":"Work"}],"notes":[{"id":"n1","notebook_id":"work","title":"Release","body":"Keep the saved preference."},{"id":"n2","notebook_id":"home","title":"Sunday's café","body":"Revised after upgrade: café, then review."},{"id":"n3","notebook_id":"work","title":"Follow-up","body":""}],"preferences":{"weekStartsOn":"monday"},"counts":{"notebooks":2,"notes":3,"preferences":1}}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'week'
+{"days":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]}
+DETECTED broken/restart-1: preferences.weekStartsOn expected=sunday observed=monday
+DETECTED broken/restart-1: week order expected=sunday,monday,tuesday,wednesday,thursday,friday,saturday observed=monday,tuesday,wednesday,thursday,friday,saturday,sunday
+CHECK broken/restart-1: schema=2; counts=2/3/1 unchanged; records, relationships and edit state match; semantic failures=2
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"},{"id":"work","name":"Work"}],"notes":[{"id":"n1","notebook_id":"work","title":"Release","body":"Keep the saved preference."},{"id":"n2","notebook_id":"home","title":"Sunday's café","body":"Revised after upgrade: café, then review."},{"id":"n3","notebook_id":"work","title":"Follow-up","body":""}],"preferences":{"weekStartsOn":"monday"},"counts":{"notebooks":2,"notes":3,"preferences":1}}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/broken/data/notebook.sqlite" 'week'
+{"days":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]}
+DETECTED broken/restart-2: preferences.weekStartsOn expected=sunday observed=monday
+DETECTED broken/restart-2: week order expected=sunday,monday,tuesday,wednesday,thursday,friday,saturday observed=monday,tuesday,wednesday,thursday,friday,saturday,sunday
+CHECK broken/restart-2: schema=2; counts=2/3/1 unchanged; records, relationships and edit state match; semantic failures=2
+RESULT broken: FAIL (expected setting loss detected); two explicit restarts stable; edit persisted
+HARNESS PASS: good upgrade passes; broken upgrade detected by setting value and week behavior despite unchanged counts.
+CLEANUP: disposable workspaces and databases removed.
+```
+
+## Additional validation
+
+Syntax and whitespace commands (exit 0):
+
+```sh
+for file in fixture/*.mjs evaluation/*.mjs; do node --check "$file" || exit; done
+printf '%s\n' 'PASS: node --check on all five .mjs files'
+git diff --check
+```
+
+Observed output:
+
+```text
+PASS: node --check on all five .mjs files
+```
+
+Frontmatter and installation layout check (exit 0), using a skill validator that
+happens to be installed on the authoring host (path redacted) plus its Python/PyYAML
+environment. It is not a dependency of this repository and the exact command is not
+reproducible elsewhere. It checks conventional format and the documented directory
+layouts only: Claude Code 2.1.311 and Codex CLI 0.155.1 were never asked to discover,
+load, or invoke the skill. The CLI versions were recorded with `--version`.
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+import yaml
+
+validator = '/Users/<user>/.codex/skills/.system/skill-creator/scripts/quick_validate.py'  # local to authoring host
+source = Path('SKILL.md')
+frontmatter = yaml.safe_load(source.read_text().split('---', 2)[1])
+assert frontmatter['name'] == 'upgrade-check'
+assert isinstance(frontmatter['description'], str) and frontmatter['description']
+with tempfile.TemporaryDirectory(prefix='upgrade-check-layout-') as directory:
+    for layout in ['home/.claude/skills/upgrade-check', 'home/.codex/skills/upgrade-check', 'project/.claude/skills/upgrade-check']:
+        target = Path(directory) / layout
+        target.mkdir(parents=True)
+        shutil.copyfile(source, target / 'SKILL.md')
+        assert sorted(p.name for p in target.iterdir()) == ['SKILL.md']
+        subprocess.run(['python3', validator, str(target)], check=True)
+        print(f'PASS format/layout: {layout}/SKILL.md', flush=True)
+print('Format/layout only; no host discovery or model execution.')
+PY
+```
+
+Captured output:
+
+```text
+Skill is valid!
+PASS format/layout: home/.claude/skills/upgrade-check/SKILL.md
+Skill is valid!
+PASS format/layout: home/.codex/skills/upgrade-check/SKILL.md
+Skill is valid!
+PASS format/layout: project/.claude/skills/upgrade-check/SKILL.md
+Format/layout only; no host discovery or model execution.
+```
+
+Negative control (exit 0): repair the defect **only in a disposable copy** and
+assert that the harness rejects the unexpected pass with exit 1. This checks that
+the expected broken outcome is asserted rather than merely printed.
+
+```sh
+node --input-type=module <<'JS'
+import assert from 'node:assert/strict';
+import { cpSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+const copy = mkdtempSync(join(tmpdir(), 'upgrade-check-control-'));
+try {
+  cpSync('fixture', join(copy, 'fixture'), { recursive: true });
+  mkdirSync(join(copy, 'evaluation'));
+  cpSync('evaluation/run.mjs', join(copy, 'evaluation/run.mjs'));
+  const file = join(copy, 'fixture/broken.mjs');
+  const source = readFileSync(file, 'utf8');
+  assert(source.includes('const converted = day || 1;'));
+  writeFileSync(file, source.replace('const converted = day || 1;', 'const converted = day ?? 1;'));
+  const result = spawnSync(process.execPath, [join(copy, 'evaluation/run.mjs')], { encoding: 'utf8', timeout: 30000 });
+  assert.ifError(result.error);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /broken\/upgrade: unexpected upgrade outcome/);
+  console.log('CONTROL PASS: repairing only the disposable broken candidate makes the harness exit 1.');
+  console.log(result.stderr.split('\n').find(line => line.startsWith('AssertionError')));
+} finally {
+  rmSync(copy, { recursive: true, force: true });
+}
+JS
+```
+
+Captured output:
+
+```text
+CONTROL PASS: repairing only the disposable broken candidate makes the harness exit 1.
+AssertionError [ERR_ASSERTION]: broken/upgrade: unexpected upgrade outcome
+```
+
+## Untested and limitations
+
+This is deterministic evaluation of a tiny application and the upgrade procedure,
+not a model-following evaluation. No Claude Code or Codex model invocation, skill
+auto-selection, installed-host loading, or end-to-end agent session was tested.
+The shared-format validation does not prove those behaviors.
+
+Only the reported macOS/Node/SQLite combination was executed. Linux, Windows,
+Node 24/25, and other agent hosts are assumed compatible, not tested. No production
+data, private user data, credentials, external services, or runtime network were
+used. The harness does not evaluate attachments, large datasets, multiple writers,
+crash/power-loss recovery, interrupted migrations, arbitrary schema versions,
+other preference values, or rollback/downgrade compatibility. It does not prove
+that the baseline executable can read schema 2 or that restoring a snapshot does so.
+
+All fixture source files, the harness, the skill, and documentation were manually
+inspected. The fixture checks a selected setting and related behaviors; passing
+this example cannot establish that an unrelated application's upgrade is safe.
