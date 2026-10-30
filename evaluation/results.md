@@ -335,6 +335,20 @@ Exact prompt, discovery observations, and the four captured reports are in
 [agent-runs/](agent-runs/). Codex required an isolated `CODEX_HOME` because the
 normal home exceeded its skills context budget and dropped all skill descriptions.
 
+## Review-driven revision
+
+A real review loop ran through Ousel using this repository. Claude Code ran the
+harness and wrote a finding: the skill did not require testing boundary values of
+a transformed field, and a Tuesday-only seed would pass the broken build. Codex
+independently reproduced the result (all seven weekdays; only Sunday corrupted)
+and returned `needs-fixes`. `SKILL.md` then gained a required value-domain sweep,
+and the harness gained the seven-value boundary loop above. Codex re-reviewed,
+caught one overclaim in this file about record assertions, and approved after the
+assertions were added. The two review artifacts are in
+[agent-runs/real-review-findings.md](agent-runs/real-review-findings.md) and
+[agent-runs/real-review-verification.md](agent-runs/real-review-verification.md). The final approval was a reported verdict, not a
+captured command result, and the viewer showed that gap.
+
 ## Untested and limitations
 
 This is deterministic evaluation of a tiny application and the upgrade procedure,
