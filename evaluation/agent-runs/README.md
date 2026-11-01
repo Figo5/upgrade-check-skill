@@ -4,7 +4,8 @@ These are four small pilot runs, not a general accuracy rate. Each run received
 the same task in a separate disposable directory containing only the fixture
 files. No run was told that a defect was planted or where it was.
 
-The published reports are the retained evidence for these runs. Links inside a
+The published pilot and explicit-invocation reports are the retained evidence
+for these runs. Links inside a
 report that point to `upgrade-check-artifacts/` or other temporary workspace
 paths are original disposable locations and are not published repository files.
 The full harness evidence is in [../results.md](../results.md).

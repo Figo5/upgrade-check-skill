@@ -1,3 +1,7 @@
+> Note: links to `upgrade-check-artifacts/` or `validation/` below are original
+> disposable workspace paths, not files published in this repository. The full
+> harness evidence is in [../results.md](../results.md).
+
 # Existing-user upgrade validation
 
 | Candidate | Result | Evidence |
