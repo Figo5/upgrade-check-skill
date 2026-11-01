@@ -91,8 +91,8 @@ $upgrade-check Check whether upgrading /path/to/app from v1.4.0 to v2.0.0
 keeps existing SQLite data. Use a disposable copy.
 ```
 
-Both explicit forms were exercised in headless runs; see
-[explicit-invocation.md](evaluation/agent-runs/explicit-invocation.md). Codex
+Both explicit forms were exercised in headless runs with permission prompts
+skipped; see [explicit-invocation.md](evaluation/agent-runs/explicit-invocation.md). Codex
 users with a large skill collection may need an isolated `CODEX_HOME` because
 the host can drop skill descriptions when its skills context budget is exceeded.
 
@@ -119,9 +119,10 @@ The deterministic fixture passes and detects its planted defect. A four-run
 pilot compared Claude Code and Codex with and without the skill: all four runs
 found the defect, so **this did not establish better bug-detection accuracy than
 agents without the skill**. The visible benefit was report structure and retained
-evidence. The skill was later revised to require covering every
-boundary value after review found that a single non-boundary seed could let the
-defect pass.
+evidence. The skill-guided Claude run tested two settings, not all seven, so the
+pilot does not support a coverage benefit either. The skill was later revised to
+require covering every boundary value after review found that a single
+non-boundary seed could let the defect pass.
 
 - Captured evidence and limitations: [evaluation/results.md](evaluation/results.md)
 - Four comparable agent runs: [agent-runs/](evaluation/agent-runs/)
