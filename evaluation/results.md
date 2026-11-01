@@ -8,7 +8,7 @@ The broken setting remained wrong; stable repeated startup does not repair loss.
 
 ## Scope and artifact identity
 
-Run on 2026-10-30 from `/Users/giofiore/work/upgrade-check-skill`. The executable
+Run on 2026-11-01 from `/Users/giofiore/work/upgrade-check-skill`. The executable
 sources and harness match the committed working tree (see the repository history);
 the SHA-256 hashes below pin every executable source, including shared code.
 There is no compilation step: Node executes the `.mjs` artifacts directly.
@@ -84,7 +84,7 @@ SHA256 fixture/good.mjs ecab889ff1169617949f8716691919bf725493fa708d905248173f63
 SHA256 fixture/broken.mjs 0d3fce385f4c98a7e57cc939adea0ac6e13c427b31820152aea1d541683c9804
 SHA256 evaluation/run.mjs cb9c962f8e3fb54caf08b5278c9293f7b7991c2153b8e09c4927601aaa7b44b3
 export NODE='/Users/<user>/.hermes/node/bin/node'  # local install path redacted
-export RUN_DIR='/var/folders/5w/hyjrff5s4bj3zftwcbg76dhr0000gn/T/upgrade-check-TABX7n'
+export RUN_DIR='/var/folders/5w/hyjrff5s4bj3zftwcbg76dhr0000gn/T/upgrade-check-ns1WsZ'
 VERSION baseline/baseline.mjs --version => notebook/1.0.0
 VERSION good/app/good.mjs --version => notebook/2.0.0-good
 $ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/good/data/notebook.sqlite" 'init'
@@ -183,6 +183,217 @@ DETECTED broken/restart-2: preferences.weekStartsOn expected=sunday observed=mon
 DETECTED broken/restart-2: week order expected=sunday,monday,tuesday,wednesday,thursday,friday,saturday observed=monday,tuesday,wednesday,thursday,friday,saturday,sunday
 CHECK broken/restart-2: schema=2; counts=2/3/1 unchanged; records, relationships and edit state match; semantic failures=2
 RESULT broken: FAIL (expected setting loss detected); two explicit restarts stable; edit persisted
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-sunday/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-sunday/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-sunday/data/notebook.sqlite" 'add-note' 'n1' 'home' 'One' 'body'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-sunday/data/notebook.sqlite" 'set-week-start' 'sunday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-sunday/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-sunday/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"}],"notes":[{"id":"n1","notebook_id":"home","title":"One","body":"body"}],"preferences":{"weekStartsOn":"sunday"},"counts":{"notebooks":1,"notes":1,"preferences":1}}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-sunday/data/notebook.sqlite" 'week'
+{"days":["sunday","monday","tuesday","wednesday","thursday","friday","saturday"]}
+BOUNDARY good/sunday: expected=sunday observed=sunday
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-sunday/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-sunday/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-sunday/data/notebook.sqlite" 'add-note' 'n1' 'home' 'One' 'body'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-sunday/data/notebook.sqlite" 'set-week-start' 'sunday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-sunday/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-sunday/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"}],"notes":[{"id":"n1","notebook_id":"home","title":"One","body":"body"}],"preferences":{"weekStartsOn":"monday"},"counts":{"notebooks":1,"notes":1,"preferences":1}}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-sunday/data/notebook.sqlite" 'week'
+{"days":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]}
+BOUNDARY broken/sunday: expected=monday observed=monday
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-monday/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-monday/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-monday/data/notebook.sqlite" 'add-note' 'n1' 'home' 'One' 'body'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-monday/data/notebook.sqlite" 'set-week-start' 'monday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-monday/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-monday/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"}],"notes":[{"id":"n1","notebook_id":"home","title":"One","body":"body"}],"preferences":{"weekStartsOn":"monday"},"counts":{"notebooks":1,"notes":1,"preferences":1}}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-monday/data/notebook.sqlite" 'week'
+{"days":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]}
+BOUNDARY good/monday: expected=monday observed=monday
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-monday/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-monday/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-monday/data/notebook.sqlite" 'add-note' 'n1' 'home' 'One' 'body'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-monday/data/notebook.sqlite" 'set-week-start' 'monday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-monday/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-monday/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"}],"notes":[{"id":"n1","notebook_id":"home","title":"One","body":"body"}],"preferences":{"weekStartsOn":"monday"},"counts":{"notebooks":1,"notes":1,"preferences":1}}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-monday/data/notebook.sqlite" 'week'
+{"days":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]}
+BOUNDARY broken/monday: expected=monday observed=monday
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-tuesday/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-tuesday/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-tuesday/data/notebook.sqlite" 'add-note' 'n1' 'home' 'One' 'body'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-tuesday/data/notebook.sqlite" 'set-week-start' 'tuesday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-tuesday/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-tuesday/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"}],"notes":[{"id":"n1","notebook_id":"home","title":"One","body":"body"}],"preferences":{"weekStartsOn":"tuesday"},"counts":{"notebooks":1,"notes":1,"preferences":1}}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-tuesday/data/notebook.sqlite" 'week'
+{"days":["tuesday","wednesday","thursday","friday","saturday","sunday","monday"]}
+BOUNDARY good/tuesday: expected=tuesday observed=tuesday
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-tuesday/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-tuesday/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-tuesday/data/notebook.sqlite" 'add-note' 'n1' 'home' 'One' 'body'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-tuesday/data/notebook.sqlite" 'set-week-start' 'tuesday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-tuesday/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-tuesday/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"}],"notes":[{"id":"n1","notebook_id":"home","title":"One","body":"body"}],"preferences":{"weekStartsOn":"tuesday"},"counts":{"notebooks":1,"notes":1,"preferences":1}}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-tuesday/data/notebook.sqlite" 'week'
+{"days":["tuesday","wednesday","thursday","friday","saturday","sunday","monday"]}
+BOUNDARY broken/tuesday: expected=tuesday observed=tuesday
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-wednesday/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-wednesday/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-wednesday/data/notebook.sqlite" 'add-note' 'n1' 'home' 'One' 'body'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-wednesday/data/notebook.sqlite" 'set-week-start' 'wednesday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-wednesday/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-wednesday/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"}],"notes":[{"id":"n1","notebook_id":"home","title":"One","body":"body"}],"preferences":{"weekStartsOn":"wednesday"},"counts":{"notebooks":1,"notes":1,"preferences":1}}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-wednesday/data/notebook.sqlite" 'week'
+{"days":["wednesday","thursday","friday","saturday","sunday","monday","tuesday"]}
+BOUNDARY good/wednesday: expected=wednesday observed=wednesday
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-wednesday/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-wednesday/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-wednesday/data/notebook.sqlite" 'add-note' 'n1' 'home' 'One' 'body'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-wednesday/data/notebook.sqlite" 'set-week-start' 'wednesday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-wednesday/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-wednesday/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"}],"notes":[{"id":"n1","notebook_id":"home","title":"One","body":"body"}],"preferences":{"weekStartsOn":"wednesday"},"counts":{"notebooks":1,"notes":1,"preferences":1}}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-wednesday/data/notebook.sqlite" 'week'
+{"days":["wednesday","thursday","friday","saturday","sunday","monday","tuesday"]}
+BOUNDARY broken/wednesday: expected=wednesday observed=wednesday
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-thursday/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-thursday/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-thursday/data/notebook.sqlite" 'add-note' 'n1' 'home' 'One' 'body'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-thursday/data/notebook.sqlite" 'set-week-start' 'thursday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-thursday/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-thursday/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"}],"notes":[{"id":"n1","notebook_id":"home","title":"One","body":"body"}],"preferences":{"weekStartsOn":"thursday"},"counts":{"notebooks":1,"notes":1,"preferences":1}}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-thursday/data/notebook.sqlite" 'week'
+{"days":["thursday","friday","saturday","sunday","monday","tuesday","wednesday"]}
+BOUNDARY good/thursday: expected=thursday observed=thursday
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-thursday/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-thursday/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-thursday/data/notebook.sqlite" 'add-note' 'n1' 'home' 'One' 'body'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-thursday/data/notebook.sqlite" 'set-week-start' 'thursday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-thursday/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-thursday/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"}],"notes":[{"id":"n1","notebook_id":"home","title":"One","body":"body"}],"preferences":{"weekStartsOn":"thursday"},"counts":{"notebooks":1,"notes":1,"preferences":1}}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-thursday/data/notebook.sqlite" 'week'
+{"days":["thursday","friday","saturday","sunday","monday","tuesday","wednesday"]}
+BOUNDARY broken/thursday: expected=thursday observed=thursday
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-friday/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-friday/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-friday/data/notebook.sqlite" 'add-note' 'n1' 'home' 'One' 'body'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-friday/data/notebook.sqlite" 'set-week-start' 'friday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-friday/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-friday/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"}],"notes":[{"id":"n1","notebook_id":"home","title":"One","body":"body"}],"preferences":{"weekStartsOn":"friday"},"counts":{"notebooks":1,"notes":1,"preferences":1}}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-friday/data/notebook.sqlite" 'week'
+{"days":["friday","saturday","sunday","monday","tuesday","wednesday","thursday"]}
+BOUNDARY good/friday: expected=friday observed=friday
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-friday/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-friday/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-friday/data/notebook.sqlite" 'add-note' 'n1' 'home' 'One' 'body'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-friday/data/notebook.sqlite" 'set-week-start' 'friday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-friday/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-friday/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"}],"notes":[{"id":"n1","notebook_id":"home","title":"One","body":"body"}],"preferences":{"weekStartsOn":"friday"},"counts":{"notebooks":1,"notes":1,"preferences":1}}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-friday/data/notebook.sqlite" 'week'
+{"days":["friday","saturday","sunday","monday","tuesday","wednesday","thursday"]}
+BOUNDARY broken/friday: expected=friday observed=friday
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-saturday/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-saturday/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-saturday/data/notebook.sqlite" 'add-note' 'n1' 'home' 'One' 'body'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-good-saturday/data/notebook.sqlite" 'set-week-start' 'saturday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-saturday/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-saturday/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"}],"notes":[{"id":"n1","notebook_id":"home","title":"One","body":"body"}],"preferences":{"weekStartsOn":"saturday"},"counts":{"notebooks":1,"notes":1,"preferences":1}}
+$ "$NODE" "$RUN_DIR/good/app/good.mjs" "$RUN_DIR/boundary-good-saturday/data/notebook.sqlite" 'week'
+{"days":["saturday","sunday","monday","tuesday","wednesday","thursday","friday"]}
+BOUNDARY good/saturday: expected=saturday observed=saturday
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-saturday/data/notebook.sqlite" 'init'
+{"schema":1}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-saturday/data/notebook.sqlite" 'add-notebook' 'home' 'Home'
+{"ok":"add-notebook"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-saturday/data/notebook.sqlite" 'add-note' 'n1' 'home' 'One' 'body'
+{"ok":"add-note"}
+$ "$NODE" "$RUN_DIR/baseline/baseline.mjs" "$RUN_DIR/boundary-broken-saturday/data/notebook.sqlite" 'set-week-start' 'saturday'
+{"ok":"set-week-start"}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-saturday/data/notebook.sqlite" 'init'
+{"schema":2}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-saturday/data/notebook.sqlite" 'read'
+{"schema":2,"notebooks":[{"id":"home","name":"Home"}],"notes":[{"id":"n1","notebook_id":"home","title":"One","body":"body"}],"preferences":{"weekStartsOn":"saturday"},"counts":{"notebooks":1,"notes":1,"preferences":1}}
+$ "$NODE" "$RUN_DIR/broken/app/broken.mjs" "$RUN_DIR/boundary-broken-saturday/data/notebook.sqlite" 'week'
+{"days":["saturday","sunday","monday","tuesday","wednesday","thursday","friday"]}
+BOUNDARY broken/saturday: expected=saturday observed=saturday
+BOUNDARY SWEEP PASS: all seven values checked separately; broken loses only Sunday, good preserves all.
 HARNESS PASS: good upgrade passes; broken upgrade detected by setting value and week behavior despite unchanged counts.
 CLEANUP: disposable workspaces and databases removed.
 ```
@@ -330,7 +541,7 @@ Code and Codex CLI, each with and without the installed skill. The task asked
 whether the two v2 candidates work for an existing user with saved data and did
 not mention the planted defect. All four exercised a real baseline-to-candidate
 path, passed the good build, and found the Sunday-to-Monday change. No false
-findings appeared; two runs did not cover every weekday. The skill-guided reports
+findings appeared; one run (Claude with the skill) did not cover every weekday. The skill-guided reports
 followed the report template and retained pristine baseline databases and command
 logs. This is a four-run demonstration, not an accuracy rate.
 
@@ -340,7 +551,7 @@ normal home exceeded its skills context budget and dropped all skill description
 
 ## Review-driven revision
 
-A real review loop ran through Ousel using this repository. Claude Code ran the
+A real review loop ran through a local agent-activity viewer using this repository. Claude Code ran the
 harness and wrote a finding: the skill did not require testing boundary values of
 a transformed field, and a Tuesday-only seed would pass the broken build. Codex
 independently reproduced the result (all seven weekdays; only Sunday corrupted)

@@ -1,3 +1,7 @@
+> Note: links to `upgrade-check-artifacts/` or `validation/` below are original
+> disposable workspace paths, not files published in this repository. The full
+> harness evidence is in [../results.md](../results.md).
+
 # Existing-user upgrade report
 
 **Result: `good.mjs` PASS; `broken.mjs` FAIL.** The broken candidate changes a saved Sunday week start to Monday. Both preserve the tested notebooks, notes, relationships, and subsequent edits.
